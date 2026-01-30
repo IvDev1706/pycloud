@@ -1,0 +1,18 @@
+.btn {
+    display: inline-block;
+    border-radius: 5px;
+    padding: 3px;
+    margin: 2px;
+    cursor: pointer;
+}
+
+.btn-primary {
+    color: var(--clear-1);
+    background-color: var(--primary-1);
+    border: 1px solid var(--primary-1);
+}
+
+.btn-primary:active {
+    color: var(--clear-3);
+    background-color: var(--primary-2);
+}

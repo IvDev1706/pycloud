@@ -1,0 +1,12 @@
+.italic {
+    font-style: italic;
+}
+
+.centered-text {
+    text-align: center;
+}
+
+.danger-text {
+    font-style: italic;
+    color: var(--danger-1);
+}

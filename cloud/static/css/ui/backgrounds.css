@@ -1,0 +1,7 @@
+.bg-primary {
+    background-color: var(--primary-1);
+}
+
+.bg-clear {
+    background-color: var(--clear-1);
+}

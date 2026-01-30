@@ -1,0 +1,24 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}">
+        <title>PyCloud - login</title>
+    </head>
+    <body class="bg-primary">
+        <div class="centered-chart">
+            <img alt="PyCloud" height="100" src="{% static 'img/pycloud-logo.png' %}">
+            <form id="login" class="column-layout" method="POST">
+                {% csrf_token %}
+                {% for field in form %}
+                    {{ field.label_tag }}
+                    {{ field }}
+                {% endfor %}
+                <button class="btn btn-primary" type="submit">acceder</button>
+            </form>
+            <p class="danger-text centered-text">{{ error }}</p>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,6 @@
+.inpt {
+    display: inline-block;
+    border-bottom: 2px solid var(--primary-1);
+    padding: 3px;
+    margin: 2px 3px;
+}
