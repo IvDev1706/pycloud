@@ -1,7 +1,19 @@
-.bg-primary {
+.bg-primary-1 {
     background-color: var(--primary-1);
 }
 
-.bg-clear {
+.bg-primary-2 {
+    background-color: var(--primary-2);
+}
+
+.bg-clear-1 {
     background-color: var(--clear-1);
+}
+
+.bg-clear-2 {
+    background-color: var(--clear-2);
+}
+
+.bg-dark {
+    background-color: var(--dark-1);
 }

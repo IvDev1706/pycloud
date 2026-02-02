@@ -5,18 +5,21 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}">
-        <title>PyCloud - login</title>
+        <title>PyCloud - {{ title }}</title>
     </head>
-    <body class="bg-primary">
+    <body class="bg-clear-2">
         <div class="centered-chart">
             <img alt="PyCloud" height="100" src="{% static 'img/pycloud-logo.png' %}">
-            <form id="login" class="column-layout" method="POST">
+            <form class="column-layout" method="POST">
                 {% csrf_token %}
                 {% for field in form %}
                     {{ field.label_tag }}
                     {{ field }}
                 {% endfor %}
                 <button class="btn btn-primary" type="submit">acceder</button>
+                {% if title == "login" %}
+                    <a class="link centered-text" href="/signup">¿No tienes cuenta?, crea una</a>
+                {% endif %}
             </form>
             <p class="danger-text centered-text">{{ error }}</p>
         </div>

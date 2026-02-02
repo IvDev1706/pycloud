@@ -1,0 +1,18 @@
+.tbl {
+    border-collapse: collapse;
+    margin: 5px auto;
+    overflow: auto;
+}
+
+.tbl-head {
+    background-color: var(--primary-2);
+    color: var(--clear-1);
+    padding: 3px;
+    border: 1px solid var(--dark-1);
+}
+
+.tbl-cell {
+    background-color: var(--clear-1);
+    padding: 3px;
+    border: 1px solid var(--dark-1);
+}

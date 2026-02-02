@@ -1,0 +1,41 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}">
+        <title>PyCloud - {{ title }}</title>
+    </head>
+    <body id="main-cont" class="bg-clear-1">
+        <header id="head-zone" class="row-layout spaced-content">
+            <img alt="PyCloud" height="50" src="{% static 'img/pycloud-logo.png' %}">
+            <h2>{{ dirname }}</h2>
+            <button id="account">A</button>
+        </header>
+        <aside id="side-zone" class="bg-primary-2">
+            aside
+        </aside>
+        <main id="content-zone">
+            {% block content %}
+            {% endblock %}
+        </main>
+        <div id="window-cont" class="full-box bg-primary-1">
+            <div id="account-box" class="centered-chart bg-clear-1">
+                cuenta
+            </div>
+            <div id="dir-box" class="centered-chart bg-clear-1">
+                crear carpeta
+            </div>
+            <div id="file-box" class="centered-chart bg-clear-1">
+                subir archivo
+            </div>
+            <div id="rename-box" class="centered-chart bg-clear-1">
+                renombrar archivo
+            </div>
+            <div id="drop-box" class="centered-chart bg-clear-1">
+                eliminar archivo
+            </div>
+        </div>
+    </body>
+</html>

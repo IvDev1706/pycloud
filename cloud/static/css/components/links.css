@@ -1,0 +1,9 @@
+.link {
+    display: inline-block;
+    color: var(--primary-1);
+    text-decoration: none;
+}
+
+.link:visited, link:hover, link:active {
+    color: var(--primary-3);
+}

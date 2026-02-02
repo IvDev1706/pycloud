@@ -14,3 +14,24 @@
     left: 50%;
     transform: translate(-50%,-50%);
 }
+
+.full-box {
+    width: 100%;
+    height: 100%;
+}
+
+.hidden-box {
+    display: flex;
+    flex-wrap: nowrap;
+    width: 60%;
+    border: 3px solid var(--primary-1);
+    border-radius: 5px;
+    margin: 5px auto;
+    padding: 5px;
+}
+
+@media screen and (max-width: 800px) {
+    .hidden-box {
+        flex-direction: column;
+    }
+}
