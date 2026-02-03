@@ -5,5 +5,6 @@ from .views import *
 urlpatterns = [
     path('',LoginView.as_view()),
     path('signup',SignUpView.as_view()),
-    path('myunit',UnitView.as_view())
+    path('myunit',UnitView.as_view()),
+    path('dir/<str:dir>',DirectoryView.as_view())
 ]

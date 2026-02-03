@@ -20,18 +20,13 @@
     height: 100%;
 }
 
-.hidden-box {
-    display: flex;
-    flex-wrap: nowrap;
+.bordered-box {
     width: 60%;
     border: 3px solid var(--primary-1);
-    border-radius: 5px;
-    margin: 5px auto;
-    padding: 5px;
 }
 
-@media screen and (max-width: 800px) {
-    .hidden-box {
+@media screen and (max-width: 800px){
+    .bordered-box {
         flex-direction: column;
     }
 }

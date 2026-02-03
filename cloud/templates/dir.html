@@ -5,6 +5,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}">
+        <script src="{% static 'js/userInfo.js' %}" defer></script>
         <title>PyCloud - {{ title }}</title>
     </head>
     <body id="main-cont" class="bg-clear-1">
@@ -13,16 +14,45 @@
             <h2>{{ dirname }}</h2>
             <button id="account">A</button>
         </header>
-        <aside id="side-zone" class="bg-primary-2">
-            aside
+        <aside id="side-zone" class="bg-primary-2 column-layout">
+            <button class="btn">crear carpeta</button>
+            <button class="btn">subir archivo</button>
+            <button class="btn">renombrar archivo</button>
+            <button class="btn">mover archivo</button>
+            <button class="btn">eliminar archivo</button>
         </aside>
         <main id="content-zone">
-            {% block content %}
-            {% endblock %}
+            <table class="tbl">
+                <thead>
+                    <tr>
+                        <th class="tbl-head">Nombre</th>
+                        <th class="tbl-head">Propietario</th>
+                        <th class="tbl-head">Fecha de subida</th>
+                        <th class="tbl-head">Tamaño</th>
+                    </tr>
+                </thead>
+                </tbody>
+                    {% for file in dirfiles %}
+                        <tr>
+                            <td class="tbl-cell">{{ file.name }}</td>
+                            <td class="tbl-cell">{{ user.id }}</td>
+                            <td class="tbl-cell">{{ file.date }}</td>
+                            <td class="tbl-cell">{{ file.size }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </main>
         <div id="window-cont" class="full-box bg-primary-1">
-            <div id="account-box" class="centered-chart bg-clear-1">
-                cuenta
+            <div id="account-box" class="centered-chart bg-clear-1 column-layout">
+                <h2 class="centered-text">Datos de cuenta</h2>
+                <p>
+                    <b>ID:</b> {{ user.id }}<br>
+                    <b>Nombre:</b> {{ user.name }}<br>
+                    <b>Correo:</b> {{ user.mail }}
+                </p>
+                <a class="link centered-text" href="/">cerrar sesion</a>
+                <button id="account-close" class="btn btn-primary">cerrar</button>
             </div>
             <div id="dir-box" class="centered-chart bg-clear-1">
                 crear carpeta

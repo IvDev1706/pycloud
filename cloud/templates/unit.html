@@ -16,16 +16,19 @@
         </header>
         <main id="content-zone">
             <h1 class="centered-text">Bienvenido a tu unidad {{ user.name }}</h1>
+            <p class="centered-text">
+                <a class="link" href="/dir/user{{ user.id }}">ir a mi raiz</a>
+            </p> 
             <h2 class="centered-text">Estatisticas de la nube</h2>
-            <div class="hidden-box">
+            <div class="chart bordered-box row-layout spaced-content">
                 <div class="chart bg-primary-2">
-                    <p style="color: #fff" class="centered-text">Archivos en la nube<br>0</p>
+                    <p style="color: #fff" class="centered-text">Archivos en la nube<br>{{ stats.files }}</p>
                 </div>
                 <div class="chart bg-primary-2">
-                    <p style="color: #fff" class="centered-text">Carpetas en la nube<br>0</p>
+                    <p style="color: #fff" class="centered-text">Carpetas en la nube<br>{{ stats.dirs }}</p>
                 </div>
                 <div class="chart bg-primary-2">
-                    <p style="color: #fff" class="centered-text">Memoria total<br>0 mb</p>
+                    <p style="color: #fff" class="centered-text">Memoria total<br>{{ stats.mem }} mb</p>
                 </div>
             </div>
             <h2 class="centered-text">Archivos recientes</h2>
@@ -38,11 +41,13 @@
                     </tr>
                 </thead>
                 </tbody>
-                    <tr>
-                        <td class="tbl-cell">-</td>
-                        <td class="tbl-cell">-</td>
-                        <td class="tbl-cell">-</td>
-                    </tr>
+                    {% for file in recent %}
+                        <tr>
+                            <td class="tbl-cell">{{ file.name }}</td>
+                            <td class="tbl-cell">{{ file.date }}</td>
+                            <td class="tbl-cell">{{ file.dir }}</td>
+                        </tr>
+                    {% endfor %}
                 </tbody>
             </table>
         </main>
@@ -54,6 +59,7 @@
                     <b>Nombre:</b> {{ user.name }}<br>
                     <b>Correo:</b> {{ user.mail }}
                 </p>
+                <a class="link centered-text" href="/">cerrar sesion</a>
                 <button id="account-close" class="btn btn-primary">cerrar</button>
             </div>
         </div>
