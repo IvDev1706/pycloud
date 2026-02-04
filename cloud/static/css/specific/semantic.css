@@ -3,6 +3,6 @@
     border-bottom: 3px solid var(--primary-1);
 }
 
-#side-zone {
+#side-zone, #content-zone {
     padding: 5px;
 }

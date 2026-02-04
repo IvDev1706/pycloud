@@ -6,6 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}">
         <script src="{% static 'js/userInfo.js' %}" defer></script>
+        <script src="{% static 'js/displayWindows.js' %}" defer></script>
         <title>PyCloud - {{ title }}</title>
     </head>
     <body id="main-cont" class="bg-clear-1">
@@ -15,29 +16,44 @@
             <button id="account">A</button>
         </header>
         <aside id="side-zone" class="bg-primary-2 column-layout">
-            <button class="btn">crear carpeta</button>
-            <button class="btn">subir archivo</button>
-            <button class="btn">renombrar archivo</button>
-            <button class="btn">mover archivo</button>
-            <button class="btn">eliminar archivo</button>
+            <button id="new-dir" class="btn btn-primary">crear carpeta</button>
+            <button id="upload-file" class="btn btn-primary">subir archivo</button>
+            <button id="rename-file" class="btn btn-primary">renombrar archivo</button>
+            <button id="move-file" class="btn btn-primary">mover archivo</button>
+            <button id="delete-file" class="btn btn-primary">eliminar archivo</button>
         </aside>
         <main id="content-zone">
-            <table class="tbl">
+            <div class="chart">
+                {% for crumb in crumbs %}
+                    <a class="link" href="/dir/{{ crumb }}">{{ crumb }}</a> / 
+                {% endfor %}
+            </div>
+            <table class="file-tbl">
                 <thead>
                     <tr>
-                        <th class="tbl-head">Nombre</th>
-                        <th class="tbl-head">Propietario</th>
-                        <th class="tbl-head">Fecha de subida</th>
-                        <th class="tbl-head">Tamaño</th>
+                        <th class="file-tbl-head">Nombre</th>
+                        <th class="file-tbl-head">Propietario</th>
+                        <th class="file-tbl-head">Fecha de subida</th>
+                        <th class="file-tbl-head">Tamaño</th>
                     </tr>
                 </thead>
                 </tbody>
+                    {% for dir in innerdirs %}
+                        <tr>
+                            <td class="file-tbl-cell">
+                                <a class="link" href="/dir/{{ dir.name }}">{{ dir.name }}</a>
+                            </td>
+                            <td class="file-tbl-cell">{{ user.name }}</td>
+                            <td class="file-tbl-cell">-</td>
+                            <td class="file-tbl-cell">-</td>
+                        </tr>
+                    {% endfor %}
                     {% for file in dirfiles %}
                         <tr>
-                            <td class="tbl-cell">{{ file.name }}</td>
-                            <td class="tbl-cell">{{ user.id }}</td>
-                            <td class="tbl-cell">{{ file.date }}</td>
-                            <td class="tbl-cell">{{ file.size }}</td>
+                            <td class="file-tbl-cell">{{ file.name }}</td>
+                            <td class="file-tbl-cell">{{ user.name }}</td>
+                            <td class="file-tbl-cell">{{ file.date }}</td>
+                            <td class="file-tbl-cell">{{ file.size }}</td>
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -54,8 +70,14 @@
                 <a class="link centered-text" href="/">cerrar sesion</a>
                 <button id="account-close" class="btn btn-primary">cerrar</button>
             </div>
-            <div id="dir-box" class="centered-chart bg-clear-1">
-                crear carpeta
+            <div id="dir-box" class="centered-chart bg-clear-1 column-layout">
+                <h2 class="centered-text">Nuevo directorio en {{ dirname }}</h2>
+                <form method="post" class="column-layout">
+                    {% csrf_token %}
+                    {{ dirform.name.label_tag }}
+                    {{ dirform.name }}
+                    <button type="submit" class="btn btn-primary">crear</button>
+                </form>
             </div>
             <div id="file-box" class="centered-chart bg-clear-1">
                 subir archivo

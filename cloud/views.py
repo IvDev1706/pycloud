@@ -88,16 +88,10 @@ class SignUpView(View):
             try:
                 #pedir informacion de la bd
                 user = User.objects.create(name=name,password=password,email=email)
-                #validar insercion
-                if not user:
-                    raise Exception("Error al registrar usuario!!")
                 #crear directorio raiz
-                dir = Directory.objects.create(name=f"user{user.pk}",hierarchy=0,user=user)
-                #validar directorio
-                if not dir:
-                    raise Exception("Error al crear directorio en bd")
+                dir = Directory.objects.create(name=f"user{user.pk}",hierarchy=f"user{user.pk}/",level=0,user=user)
                 #crear fisicamente el directorio fisico
-                os.mkdir(CLOUD_DIR+dir.name,mode=0o755)
+                os.mkdir(CLOUD_DIR+dir.name,mode=0o775)
                 #redirigir
                 return redirect("/")
             except Exception as e:
@@ -156,7 +150,7 @@ class UnitView(View):
 class DirectoryView(View):
     #atributos de la vista
     template = "dir.html"
-    context = {'title':'dirctory','dirname':"", 'dirfiles':None, 'user': {}}
+    context = {'title':'dirctory','user':{}}
     #cuando se realiza peticiones get
     def get(self,request:HttpRequest,dir:str):
         #obtener el id
@@ -171,15 +165,56 @@ class DirectoryView(View):
         self.context['user']['name'] = request.session.get("user_name")
         self.context['user']['mail'] = request.session.get("user_mail")
         
-        #definir el dirname
-        self.context['dirname'] = dir
+        #formularios de accion
+        self.context['dirform'] = DirectoryForm()
         
-        #obtener archivos del directorio
-        self.context['dirfiles'] = File.objects.filter(dir=dir)
+        #definir el dirname
+        try:
+            #obtener directorio si existe
+            dr = Directory.objects.get(name=dir,user=User.objects.get(id=id))
+            self.context['dirname'] = dr.name
+            
+            #obtener la jerarquia
+            self.context['crumbs'] = [dir for dir in dr.hierarchy.split("/") if dir != ""]
+            
+            #obtener directorios internos
+            self.context['innerdirs'] = Directory.objects.filter(hierarchy__icontains=dr.hierarchy,level=dr.level+1)
+            
+            #obtener archivos del directorio
+            self.context['dirfiles'] = File.objects.filter(dir=dir)
+        except Directory.DoesNotExist:
+            #mostrar raiz
+            self.context['dirname'] = f"user{id}"
+            
+            #obtener archivos del directorio
+            self.context['dirfiles'] = File.objects.filter(dir=f"user{id}")
         
         #retornar vista
         return render(request,self.template,self.context)
         
     #cuando se realizan peticiones post
-    def post(self,request:HttpRequest):
-        return redirect("/")
+    def post(self,request:HttpRequest,dir:str):        
+        #verificrar que el directorio exista
+        try:
+            #obtener el directorio
+            dr = Directory.objects.get(name=dir)
+            
+            #obtener nuevo directorio
+            dform = DirectoryForm(request.POST)
+            
+            if dform.is_valid():
+                #nombre de la nueva carpeta
+                name = dform.cleaned_data['name']
+                #creamos el directorio en la bd
+                Directory.objects.create(name=name,hierarchy=dr.hierarchy+name+"/",level=dr.level+1,user=User.objects.get(id=self.context['user']['id']))
+                #creamos el directorio fisicamente
+                os.mkdir(CLOUD_DIR+dr.hierarchy+name)
+                #refrescar directorios
+                self.context['innerdirs'] = Directory.objects.filter(hierarchy__icontains=dr.hierarchy,level=dr.level+1)
+        except Directory.DoesNotExist:
+            return render(request,self.template,self.context)
+        except Exception:
+            return render(request,self.template,self.context)
+        
+        #retornar vista
+        return render(request,self.template,self.context)
