@@ -50,7 +50,9 @@
                     {% endfor %}
                     {% for file in dirfiles %}
                         <tr>
-                            <td class="file-tbl-cell">{{ file.name }}</td>
+                            <td class="file-tbl-cell">
+                                <a class="link" href="/file/{{ file.name }}">{{ file.name }}</a>
+                            </td>
                             <td class="file-tbl-cell">{{ user.name }}</td>
                             <td class="file-tbl-cell">{{ file.date }}</td>
                             <td class="file-tbl-cell">{{ file.size }}</td>
@@ -74,19 +76,21 @@
                 <h2 class="centered-text">Nuevo directorio en {{ dirname }}</h2>
                 <form method="post" class="column-layout">
                     {% csrf_token %}
+                    {{ dirform.type }}
                     {{ dirform.name.label_tag }}
                     {{ dirform.name }}
                     <button type="submit" class="btn btn-primary">crear</button>
                 </form>
             </div>
-            <div id="file-box" class="centered-chart bg-clear-1">
-                subir archivo
-            </div>
-            <div id="rename-box" class="centered-chart bg-clear-1">
-                renombrar archivo
-            </div>
-            <div id="drop-box" class="centered-chart bg-clear-1">
-                eliminar archivo
+            <div id="file-box" class="centered-chart bg-clear-1 column-layout">
+                <h2 class="centered-text">Nuevo archivo en {{ dirname }}</h2>
+                <form method="post" class="column-layout" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ fileform.type }}
+                    {{ fileform.file.label_tag }}
+                    {{ fileform.file }}
+                    <button type="submit" class="btn btn-primary">subir</button>
+                </form>
             </div>
         </div>
     </body>

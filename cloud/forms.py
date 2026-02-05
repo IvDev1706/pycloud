@@ -16,3 +16,9 @@ class SignUpForm(forms.Form):
 class DirectoryForm(forms.Form):
     #campos del formulario
     name = forms.CharField(label="Nombre de la carpeta:",strip=True,max_length=20,widget=forms.TextInput(attrs={'required':True,'class':'inpt','placeholder':'example'}))
+    type = forms.CharField(label="",widget=forms.HiddenInput(),initial="dir")
+    
+class FileForm(forms.Form):
+    #campos del formulario
+    file = forms.FileField(label="Seleccionar archivo:",required=True,allow_empty_file=False)
+    type = forms.CharField(label="",widget=forms.HiddenInput(),initial="file")

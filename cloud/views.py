@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.views import View
-from django.http import HttpRequest
+from django.http import HttpRequest, FileResponse, HttpResponseNotFound
 from .forms import *
 from .models import *
 from datetime import date
@@ -133,10 +133,11 @@ class UnitView(View):
                 self.context['stats']['files'] += files.count()
                 for file in files:
                     self.context['stats']['mem'] += file.size
+        self.context['stats']['mem'] /= 1000000
         
         #si existen archivos, obtener los mas recientes
         if self.context['stats']['files']:
-            dt = date()
+            dt = date.today()
             #obtener files
             self.context['recent'] = File.objects.filter(date__year=dt.year,date__month=dt.month).order_by("-date")[:10]
                 
@@ -167,6 +168,7 @@ class DirectoryView(View):
         
         #formularios de accion
         self.context['dirform'] = DirectoryForm()
+        self.context['fileform'] = FileForm()
         
         #definir el dirname
         try:
@@ -199,22 +201,91 @@ class DirectoryView(View):
             #obtener el directorio
             dr = Directory.objects.get(name=dir)
             
-            #obtener nuevo directorio
-            dform = DirectoryForm(request.POST)
+            #obtener el tipo
+            type = request.POST.get("type")
             
-            if dform.is_valid():
-                #nombre de la nueva carpeta
-                name = dform.cleaned_data['name']
-                #creamos el directorio en la bd
-                Directory.objects.create(name=name,hierarchy=dr.hierarchy+name+"/",level=dr.level+1,user=User.objects.get(id=self.context['user']['id']))
-                #creamos el directorio fisicamente
-                os.mkdir(CLOUD_DIR+dr.hierarchy+name)
-                #refrescar directorios
-                self.context['innerdirs'] = Directory.objects.filter(hierarchy__icontains=dr.hierarchy,level=dr.level+1)
+            #manejar los formularios
+            if type == "dir":
+                self.handle_dir(request,dr)
+            elif type == "file":
+                self.handle_file(request,dr)
         except Directory.DoesNotExist:
             return render(request,self.template,self.context)
-        except Exception:
+        except Exception as e:
             return render(request,self.template,self.context)
         
         #retornar vista
         return render(request,self.template,self.context)
+    
+    def handle_dir(self,request:HttpRequest,dr:Directory):
+        #obtener nuevo directorio
+        dform = DirectoryForm(request.POST)
+        
+        #validar el formulario
+        if not dform.is_valid():
+            return 
+        
+        #nombre de la nueva carpeta
+        name = dform.cleaned_data['name']
+        #creamos el directorio en la bd
+        Directory.objects.create(name=name,hierarchy=dr.hierarchy+name+"/",level=dr.level+1,user=User.objects.get(id=self.context['user']['id']))
+        #creamos el directorio fisicamente
+        os.mkdir(CLOUD_DIR+dr.hierarchy+name)
+        #refrescar directorios
+        self.context['innerdirs'] = Directory.objects.filter(hierarchy__icontains=dr.hierarchy,level=dr.level+1)
+    
+    def handle_file(self,request:HttpRequest,dr:Directory):
+        #obtener nuevo directorio
+        fform = FileForm(request.POST, request.FILES)
+        
+        #validar el formulario
+        if not fform.is_valid():
+            print("no es valido")
+            return
+        
+        #obtener el archivo
+        file = request.FILES['file']
+        
+        #guardar en bd
+        File.objects.create(name=file.name,size=file.size,date=date.today().strftime("%Y-%m-%d"),dir=dr)
+        
+        #guardar fisicamente
+        with open(CLOUD_DIR+dr.hierarchy+file.name,"wb+") as destination:
+            #escribir chunks de datos
+            for chunk in file.chunks():
+                destination.write(chunk)
+            #cerrar el archivo
+            destination.close()
+            del destination
+        
+        #refrescar los archivos
+        self.context['dirfiles'] = File.objects.filter(dir=dir)
+        
+class FileView(View):
+    #cuando se realizen peticiones get
+    def get(self, request:HttpRequest, file:str):
+        #obtener el id
+        id = request.session.get("user_id")
+        
+        #verificar el login
+        if not id:
+            return redirect("/")
+        
+        #validar el archivo
+        try:
+            #obtener el archivo
+            fl = File.objects.get(name=file)
+            
+            #obtener la ruta
+            path = Directory.objects.get(name=fl.dir.name).hierarchy + fl.name
+            
+            #abrir el archivo fisicamente
+            handler = open(CLOUD_DIR+path,"rb")
+            
+            #retornar el archivo
+            return FileResponse(handler,as_attachment=True,filename=os.path.basename(path))
+        except File.DoesNotExist:
+            return HttpResponseNotFound("<h1>Archivo no encontrado</h1>")
+        
+    def post(self, request:HttpRequest):
+        return redirect("/")

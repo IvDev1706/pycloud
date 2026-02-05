@@ -19,5 +19,4 @@ class File(models.Model):
     name = models.CharField(max_length=50,primary_key=True)
     size = models.IntegerField()
     date = models.DateField()
-    path = models.TextField()
     dir = models.ForeignKey(Directory,on_delete=models.CASCADE)
