@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.views import View
-from django.http import HttpRequest, FileResponse, HttpResponseNotFound
+from django.http import HttpRequest, FileResponse, HttpResponseNotFound, HttpResponseServerError
+from django.template import Template
 from .forms import *
 from .models import *
 from datetime import date
@@ -11,7 +12,14 @@ import os
 class LoginView(View):
     #atributos de la vista
     template = "loginTemplate.html"
-    context = {'title':"login",'form':None,'error':""}
+    context = {'title':"login",'form':None}
+    ertpl = "error.html"
+    errctx = {
+        'title':"error",
+        'code':404,
+        'summary':"Acceso invalido",
+        'description':"El nombre de usuario o contraseña son incorrectos o no existen"
+    }
     #cuando se realizan peticiones get
     def get(self, request:HttpRequest):
         #logica de vista
@@ -22,8 +30,6 @@ class LoginView(View):
            request.session.flush()
            
         #configuracion del contexto
-        if self.context != "":
-            self.context['error'] = ""
         self.context['form'] = LoginForm()
         #logica de vista
         return render(request,self.template,self.context)
@@ -50,14 +56,20 @@ class LoginView(View):
             except User.DoesNotExist:
                 #actualizacion del contexto
                 self.context['form'] = LoginForm()
-                self.context['error'] = "Acceso invalido, usuario o contraseña incorrecto"
                 #retornamos el mensaje de error
-                return render(request,self.template,self.context)
+                return render(request,self.ertpl,self.errctx,status=self.errctx['code'])
 
 class SignUpView(View):
     #atributos de la vista
     template = 'loginTemplate.html'
-    context = {'title':"signup",'form':None,'error':""}
+    context = {'title':"signup",'form':None}
+    ertpl = "error.html"
+    errctx = {
+        'title':"error",
+        'code':500,
+        'summary':"fallo interno del servidor",
+        'description':"Ocurrio un fallo al crear la cuenta de usuario y/o mapear la unidad en disco"
+    }
     #cuando se realizan peticiones get
     def get(self, request:HttpRequest):
         #logica de vista
@@ -68,8 +80,6 @@ class SignUpView(View):
            request.session.flush()
         
         #configuracion del contexto
-        if self.context != '':
-            self.context['error'] = ''
         self.context['form'] = SignUpForm()
         #logica de vista
         return render(request,self.template,self.context)
@@ -79,27 +89,28 @@ class SignUpView(View):
         form = SignUpForm(request.POST)
         
         #validar formulario
-        if form.is_valid():
-            #obtener los datos ingresados
-            name = form.cleaned_data['name']
-            password = form.cleaned_data['password']
-            email = form.cleaned_data['email']
-            #verificamos que exista en la bd
-            try:
-                #pedir informacion de la bd
-                user = User.objects.create(name=name,password=password,email=email)
-                #crear directorio raiz
-                dir = Directory.objects.create(name=f"user{user.pk}",hierarchy=f"user{user.pk}/",level=0,user=user)
-                #crear fisicamente el directorio fisico
-                os.mkdir(CLOUD_DIR+dir.name,mode=0o775)
-                #redirigir
-                return redirect("/")
-            except Exception as e:
-                #actualizacion del contexto
-                self.context['form'] = SignUpForm()
-                self.context['error'] = e
-                #retornamos el mensaje de error
-                return render(request,self.template,self.context)   
+        if not form.is_valid():
+            return
+        
+        #obtener los datos ingresados
+        name = form.cleaned_data['name']
+        password = form.cleaned_data['password']
+        email = form.cleaned_data['email']
+        #verificamos que exista en la bd
+        try:
+            #pedir informacion de la bd
+            user = User.objects.create(name=name,password=password,email=email)
+            #crear directorio raiz
+            dir = Directory.objects.create(name=f"user{user.pk}",hierarchy=f"user{user.pk}/",level=0,user=user)
+            #crear fisicamente el directorio fisico
+            os.mkdir(CLOUD_DIR+dir.name,mode=0o775)
+            #redirigir
+            return redirect("/")
+        except Exception as e:
+            #actualizacion del contexto
+            self.context['form'] = SignUpForm()
+            #retornamos el mensaje de error
+            return render(request,self.ertpl,self.errctx,status=self.errctx['code'])
 
 class UnitView(View):
     #atributos de la vista
@@ -152,6 +163,19 @@ class DirectoryView(View):
     #atributos de la vista
     template = "dir.html"
     context = {'title':'dirctory','user':{}}
+    ertpl = "error.html"
+    errctx1 = {
+        'title':"error",
+        'code':404,
+        'summary':"directorio no entontrado",
+        'description':"El nombre del directorio es incorrecto o no existe"
+    }
+    errctx2 = {
+        'title':"error",
+        'code':500,
+        'summary':"fallo interno del servidor",
+        'description':"Ocurrio un fallo al crear la cuenta de usuario y/o mapear la unidad en disco"
+    }
     #cuando se realiza peticiones get
     def get(self,request:HttpRequest,dir:str):
         #obtener el id
@@ -184,15 +208,11 @@ class DirectoryView(View):
             
             #obtener archivos del directorio
             self.context['dirfiles'] = File.objects.filter(dir=dir)
-        except Directory.DoesNotExist:
-            #mostrar raiz
-            self.context['dirname'] = f"user{id}"
             
-            #obtener archivos del directorio
-            self.context['dirfiles'] = File.objects.filter(dir=f"user{id}")
-        
-        #retornar vista
-        return render(request,self.template,self.context)
+            #retornar vista
+            return render(request,self.template,self.context)
+        except Directory.DoesNotExist:
+            return render(request,self.ertpl,self.errctx1)
         
     #cuando se realizan peticiones post
     def post(self,request:HttpRequest,dir:str):        
@@ -209,13 +229,13 @@ class DirectoryView(View):
                 self.handle_dir(request,dr)
             elif type == "file":
                 self.handle_file(request,dr)
+                
+            #retornar vista
+            return render(request,self.template,self.context)
         except Directory.DoesNotExist:
-            return render(request,self.template,self.context)
+            return render(request,self.ertpl,self.errctx1,status=self.errctx1['code'])
         except Exception as e:
-            return render(request,self.template,self.context)
-        
-        #retornar vista
-        return render(request,self.template,self.context)
+            return render(request,self.ertpl,self.errctx2,status=self.errctx2['code'])
     
     def handle_dir(self,request:HttpRequest,dr:Directory):
         #obtener nuevo directorio
@@ -262,6 +282,14 @@ class DirectoryView(View):
         self.context['dirfiles'] = File.objects.filter(dir=dir)
         
 class FileView(View):
+    #atributos de clase
+    ertpl = "error.html"
+    errctx = {
+        'title':"error",
+        'code':404,
+        'summary':"Archivo no encontrado",
+        'description':"El nombre de archivo es incorrecto o no existe"
+    }
     #cuando se realizen peticiones get
     def get(self, request:HttpRequest, file:str):
         #obtener el id
@@ -285,7 +313,7 @@ class FileView(View):
             #retornar el archivo
             return FileResponse(handler,as_attachment=True,filename=os.path.basename(path))
         except File.DoesNotExist:
-            return HttpResponseNotFound("<h1>Archivo no encontrado</h1>")
+            return render(request,self.ertpl,self.errctx,status=self.errctx['code'])
         
     def post(self, request:HttpRequest):
         return redirect("/")
