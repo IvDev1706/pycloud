@@ -3,6 +3,47 @@
     border-bottom: 3px solid var(--primary-1);
 }
 
-#side-zone, #content-zone {
+#side-zone {
     padding: 5px;
+    transition: left 1s ease;
+}
+
+#content-zone {
+    padding: 5px;
+}
+
+#movile-button {
+    display: none;
+    width: 50px;
+    position: absolute;
+    top: 0;
+    left: 150px;
+}
+
+/* estilo de movile */
+@media screen and (max-width:800px) {
+    #main-cont {
+        display: block;
+    }
+
+    #movile-button {
+        display: block;
+    }
+
+    #side-zone {
+        position: absolute;
+        width: 150px;
+        top: 0;
+        left: -150px;
+        z-index: 1;
+        height: 100%;
+    }
+
+    #side-zone:has(#movile-button:hover), #side-zone:hover {
+        left: 0;
+    }
+
+    #movile-button:hover {
+        left: 150px;
+    }
 }

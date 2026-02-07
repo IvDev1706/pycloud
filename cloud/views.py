@@ -1,12 +1,11 @@
 from django.shortcuts import render, redirect
 from django.views import View
-from django.http import HttpRequest, FileResponse, HttpResponseNotFound, HttpResponseServerError
-from django.template import Template
+from django.http import HttpRequest, FileResponse
 from .forms import *
 from .models import *
 from datetime import date
 from PyCloud.settings import CLOUD_DIR
-import os
+import os, shutil
 
 # Create your views here.
 class LoginView(View):
@@ -106,7 +105,7 @@ class SignUpView(View):
             os.mkdir(CLOUD_DIR+dir.name,mode=0o775)
             #redirigir
             return redirect("/")
-        except Exception as e:
+        except Exception:
             #actualizacion del contexto
             self.context['form'] = SignUpForm()
             #retornamos el mensaje de error
@@ -133,7 +132,7 @@ class UnitView(View):
         #obtener estadisticas de la nube
         files = File.objects.filter(dir=f"user{id}")
         dirs = Directory.objects.filter(user=id)
-        self.context['stats']['files'] = files.count()
+        self.context['stats']['files'] = 0
         self.context['stats']['dirs'] = dirs.count()
         self.context['stats']['mem'] = 0
         
@@ -174,7 +173,7 @@ class DirectoryView(View):
         'title':"error",
         'code':500,
         'summary':"fallo interno del servidor",
-        'description':"Ocurrio un fallo al crear la cuenta de usuario y/o mapear la unidad en disco"
+        'description':"Ocurrio un fallo inesperado durante la operacion realizada"
     }
     #cuando se realiza peticiones get
     def get(self,request:HttpRequest,dir:str):
@@ -193,6 +192,8 @@ class DirectoryView(View):
         #formularios de accion
         self.context['dirform'] = DirectoryForm()
         self.context['fileform'] = FileForm()
+        self.context['rmdirform'] = DropDirectoryForm()
+        self.context['rmfileform'] = DropFileForm()
         
         #definir el dirname
         try:
@@ -229,12 +230,16 @@ class DirectoryView(View):
                 self.handle_dir(request,dr)
             elif type == "file":
                 self.handle_file(request,dr)
-                
+            elif type == "rm-dir":
+                if self.handle_rmdir(request,dr):
+                    #redirigir a un directorio superior
+                    hr = [d for d in dr.hierarchy.split("/") if d != ""]
+                    return redirect(f"/dir/{hr[len(hr)-2]}")
             #retornar vista
             return render(request,self.template,self.context)
         except Directory.DoesNotExist:
             return render(request,self.ertpl,self.errctx1,status=self.errctx1['code'])
-        except Exception as e:
+        except Exception:
             return render(request,self.ertpl,self.errctx2,status=self.errctx2['code'])
     
     def handle_dir(self,request:HttpRequest,dr:Directory):
@@ -260,7 +265,6 @@ class DirectoryView(View):
         
         #validar el formulario
         if not fform.is_valid():
-            print("no es valido")
             return
         
         #obtener el archivo
@@ -279,16 +283,43 @@ class DirectoryView(View):
             del destination
         
         #refrescar los archivos
-        self.context['dirfiles'] = File.objects.filter(dir=dir)
+        self.context['dirfiles'] = File.objects.filter(dir=dr.name)
+    
+    def handle_rmdir(self,request:HttpRequest,dr:Directory):
+        #obtener datos del formulario
+        rdform = DropDirectoryForm(request.POST)
+        
+        #validar formulario
+        if not rdform.is_valid() or dr.name.find("user") != -1:
+            return False
+        
+        #obtener directorios internos
+        dirs = Directory.objects.filter(hierarchy__icontains=dr.name)
+        
+        #eliminar directorios
+        for dir in dirs:
+            dir.delete() #elimina archivos por cascadeo
+            
+        #eliminar fisicamente
+        shutil.rmtree(CLOUD_DIR+dr.hierarchy[:-1])
+        
+        #redirigir
+        return True
         
 class FileView(View):
     #atributos de clase
     ertpl = "error.html"
-    errctx = {
+    errctx1 = {
         'title':"error",
         'code':404,
         'summary':"Archivo no encontrado",
         'description':"El nombre de archivo es incorrecto o no existe"
+    }
+    errctx2 = {
+        'title':"error",
+        'code':500,
+        'summary':"fallo interno del servidor",
+        'description':"Ocurrio un fallo inesperado durante la operacion realizada"
     }
     #cuando se realizen peticiones get
     def get(self, request:HttpRequest, file:str):
@@ -315,5 +346,26 @@ class FileView(View):
         except File.DoesNotExist:
             return render(request,self.ertpl,self.errctx,status=self.errctx['code'])
         
-    def post(self, request:HttpRequest):
-        return redirect("/")
+    def post(self, request:HttpRequest, file:str):
+        #validar existenia del archivo
+        try:
+            #obtener el archivo
+            fl = File.objects.get(name=file)
+            
+            #obtener la accion
+            type = request.POST.get("type")
+            
+            #segun el tipo
+            if type == "rm-file":
+                #eliminar el archivo de la bd
+                fl.delete()
+                #eliminar fisicamente el archivo
+                print(fl.dir.hierarchy)
+                os.remove(CLOUD_DIR+fl.dir.hierarchy+file)
+                
+            return redirect(f"/dir/{fl.dir.name}")
+        except File.DoesNotExist:
+            return render(request,self.ertpl,self.errctx1,status=self.errctx1['code'])
+        except Exception as e:
+            print(e)
+            return render(request,self.ertpl,self.errctx2,status=self.errctx2['code'])

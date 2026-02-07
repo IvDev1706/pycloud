@@ -32,3 +32,14 @@
     color: var(--clear-3);
     background-color: var(--primary-2);
 }
+
+.btn-danger {
+    color: var(--clear-1);
+    background-color: var(--danger-1);
+    border: 1px solid var(--danger-1);
+}
+
+.btn-danger:active {
+    color: var(--clear-3);
+    background-color: var(--danger-2);
+}

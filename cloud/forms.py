@@ -22,3 +22,11 @@ class FileForm(forms.Form):
     #campos del formulario
     file = forms.FileField(label="Seleccionar archivo:",required=True,allow_empty_file=False)
     type = forms.CharField(label="",widget=forms.HiddenInput(),initial="file")
+    
+class DropDirectoryForm(forms.Form):
+    #campos del formulario
+    type = forms.CharField(label="",widget=forms.HiddenInput(),initial="rm-dir")
+    
+class DropFileForm(forms.Form):
+    #campos del formulario
+    type = forms.CharField(label="",widget=forms.HiddenInput(),initial="rm-file")

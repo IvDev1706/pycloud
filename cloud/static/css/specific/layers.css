@@ -7,6 +7,6 @@
     left: 0;
 }
 
-#account-box, #dir-box, #file-box, #rename-box, #drop-box {
+#account-box, #dir-box, #file-box, #drop-dir-box {
     display: none;
 }
