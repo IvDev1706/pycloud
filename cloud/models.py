@@ -9,14 +9,14 @@ class User(models.Model):
     
 class Directory(models.Model):
     #campos del directorio
-    name = models.CharField(max_length=20,primary_key=True)
+    name = models.CharField(max_length=20)
     hierarchy = models.TextField()
     level = models.IntegerField()
     user = models.ForeignKey(User,on_delete=models.CASCADE)
 
 class File(models.Model):
     #campos del directorio
-    name = models.CharField(max_length=50,primary_key=True)
+    name = models.CharField(max_length=50)
     size = models.IntegerField()
     date = models.DateField()
     dir = models.ForeignKey(Directory,on_delete=models.CASCADE)

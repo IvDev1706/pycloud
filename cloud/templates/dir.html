@@ -97,6 +97,7 @@
                     {{ dirform.name }}
                     <button type="submit" class="btn btn-primary">crear</button>
                 </form>
+                <button id="dir-close" type="btn" class="btn btn-primary">cerrar</button>
             </div>
             <div id="file-box" class="centered-chart bg-clear-1 column-layout">
                 <h2 class="centered-text">Nuevo archivo en {{ dirname }}</h2>
@@ -107,6 +108,7 @@
                     {{ fileform.file }}
                     <button type="submit" class="btn btn-primary">subir</button>
                 </form>
+                <button id="file-close" type="btn" class="btn btn-primary">cerrar</button>
             </div>
             <div id="drop-dir-box" class="centered-chart bg-clear-1 column-layout">
                 <h2 class="centered-text">Eliminar {{ dirname }} definitivamente</h2>
@@ -120,6 +122,7 @@
                     {{ rmdirform.type }}
                     <button type="submit" class="btn btn-danger">eliminar</button>
                 </form>
+                <button id="drop-close" type="btn" class="btn btn-primary">cerrar</button>
             </div>
         </div>
     </body>

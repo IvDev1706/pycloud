@@ -130,7 +130,7 @@ class UnitView(View):
         self.context['user']['mail'] = request.session.get("user_mail")
         
         #obtener estadisticas de la nube
-        files = File.objects.filter(dir=f"user{id}")
+        files = File.objects.filter(dir=Directory.objects.get(name=f"user{id}").pk)
         dirs = Directory.objects.filter(user=id)
         self.context['stats']['files'] = 0
         self.context['stats']['dirs'] = dirs.count()
@@ -139,7 +139,7 @@ class UnitView(View):
         #contar archivos y memoria de subdirectorios
         if dirs.count():
             for dir in dirs:
-                files = File.objects.filter(dir=dir.name)
+                files = File.objects.filter(dir=dir.pk)
                 self.context['stats']['files'] += files.count()
                 for file in files:
                     self.context['stats']['mem'] += file.size
@@ -198,7 +198,7 @@ class DirectoryView(View):
         #definir el dirname
         try:
             #obtener directorio si existe
-            dr = Directory.objects.get(name=dir,user=User.objects.get(id=id))
+            dr = Directory.objects.get(name=dir,user=User.objects.get(id=id).pk)
             self.context['dirname'] = dr.name
             
             #obtener la jerarquia
@@ -208,7 +208,7 @@ class DirectoryView(View):
             self.context['innerdirs'] = Directory.objects.filter(hierarchy__icontains=dr.hierarchy,level=dr.level+1)
             
             #obtener archivos del directorio
-            self.context['dirfiles'] = File.objects.filter(dir=dir)
+            self.context['dirfiles'] = File.objects.filter(dir=dr.pk)
             
             #retornar vista
             return render(request,self.template,self.context)
@@ -220,7 +220,7 @@ class DirectoryView(View):
         #verificrar que el directorio exista
         try:
             #obtener el directorio
-            dr = Directory.objects.get(name=dir)
+            dr = Directory.objects.get(name=dir,user=User.objects.get(id=self.context['user']['id']).pk)
             
             #obtener el tipo
             type = request.POST.get("type")
@@ -235,11 +235,15 @@ class DirectoryView(View):
                     #redirigir a un directorio superior
                     hr = [d for d in dr.hierarchy.split("/") if d != ""]
                     return redirect(f"/dir/{hr[len(hr)-2]}")
+                else:
+                    #se intento eliminar la raiz
+                    raise Exception()
             #retornar vista
             return render(request,self.template,self.context)
         except Directory.DoesNotExist:
             return render(request,self.ertpl,self.errctx1,status=self.errctx1['code'])
-        except Exception:
+        except Exception as e:
+            print(e)
             return render(request,self.ertpl,self.errctx2,status=self.errctx2['code'])
     
     def handle_dir(self,request:HttpRequest,dr:Directory):
@@ -283,7 +287,7 @@ class DirectoryView(View):
             del destination
         
         #refrescar los archivos
-        self.context['dirfiles'] = File.objects.filter(dir=dr.name)
+        self.context['dirfiles'] = File.objects.filter(dir=dr.pk)
     
     def handle_rmdir(self,request:HttpRequest,dr:Directory):
         #obtener datos del formulario
@@ -344,7 +348,7 @@ class FileView(View):
             #retornar el archivo
             return FileResponse(handler,as_attachment=True,filename=os.path.basename(path))
         except File.DoesNotExist:
-            return render(request,self.ertpl,self.errctx,status=self.errctx['code'])
+            return render(request,self.ertpl,self.errctx1,status=self.errctx1['code'])
         
     def post(self, request:HttpRequest, file:str):
         #validar existenia del archivo
@@ -360,12 +364,10 @@ class FileView(View):
                 #eliminar el archivo de la bd
                 fl.delete()
                 #eliminar fisicamente el archivo
-                print(fl.dir.hierarchy)
                 os.remove(CLOUD_DIR+fl.dir.hierarchy+file)
                 
             return redirect(f"/dir/{fl.dir.name}")
         except File.DoesNotExist:
             return render(request,self.ertpl,self.errctx1,status=self.errctx1['code'])
         except Exception as e:
-            print(e)
             return render(request,self.ertpl,self.errctx2,status=self.errctx2['code'])
