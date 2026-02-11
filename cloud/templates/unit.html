@@ -1,67 +1,40 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="es">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}">
-        <script src="{% static 'js/userInfo.js' %}" defer></script>
-        <title>PyCloud - {{ title }}</title>
-    </head>
-    <body class="bg-clear-1 column-layout">
-        <header id="head-zone" class="row-layout spaced-content">
-            <img alt="PyCloud" height="50" src="{% static 'img/pycloud-logo.png' %}">
-            <h2> Mi unidad </h2>
-            <button id="account">A</button>
-        </header>
-        <main id="content-zone">
-            <h1 class="centered-text">Bienvenido a tu unidad {{ user.name }}</h1>
-            <p class="centered-text">
-                <a class="link" href="/dir/user{{ user.id }}">ir a mi raiz</a>
-            </p> 
-            <h2 class="centered-text">Estatisticas de la nube</h2>
-            <div class="chart bordered-box row-layout spaced-content">
-                <div class="chart bg-primary-2">
-                    <p style="color: #fff" class="centered-text">Archivos en la nube<br>{{ stats.files }}</p>
-                </div>
-                <div class="chart bg-primary-2">
-                    <p style="color: #fff" class="centered-text">Carpetas en la nube<br>{{ stats.dirs }}</p>
-                </div>
-                <div class="chart bg-primary-2">
-                    <p style="color: #fff" class="centered-text">Memoria total<br>{{ stats.mem }} mb</p>
-                </div>
-            </div>
-            <h2 class="centered-text">Archivos recientes</h2>
-            <table class="tbl">
-                <thead>
-                    <tr>
-                        <th class="tbl-head">Nombre</th>
-                        <th class="tbl-head">Fecha de subida</th>
-                        <th class="tbl-head">Carpeta</th>
-                    </tr>
-                </thead>
-                </tbody>
-                    {% for file in recent %}
-                        <tr>
-                            <td class="tbl-cell">{{ file.name }}</td>
-                            <td class="tbl-cell">{{ file.date }}</td>
-                            <td class="tbl-cell">{{ file.dir.name }}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </main>
-        <div id="window-cont" class="full-box bg-primary-1">
-            <div id="account-box" class="centered-chart bg-clear-1 column-layout">
-                <h2 class="centered-text">Datos de cuenta</h2>
-                <p>
-                    <b>ID:</b> {{ user.id }}<br>
-                    <b>Nombre:</b> {{ user.name }}<br>
-                    <b>Correo:</b> {{ user.mail }}
-                </p>
-                <a class="link centered-text" href="/">cerrar sesion</a>
-                <button id="account-close" class="btn btn-primary">cerrar</button>
-            </div>
+{% extends "baseTemplate.html" %}
+
+{% block actions %}
+    <a class="tab-link centered-text" href="/dir/user{{ user.id }}">ir a mi raiz</a>
+{% endblock actions %}
+
+{% block content %}
+    <h1 class="centered-text">Bienvenido a tu unidad {{ user.name }}</h1> 
+    <h2 class="centered-text">Estatisticas de la nube</h2>
+    <div class="chart bordered-box row-layout spaced-content">
+        <div class="chart bg-primary-2">
+            <p style="color: #fff" class="centered-text">Archivos en la nube<br>{{ stats.files }}</p>
         </div>
-    </body>
-</html>
+        <div class="chart bg-primary-2">
+            <p style="color: #fff" class="centered-text">Carpetas en la nube<br>{{ stats.dirs }}</p>
+        </div>
+        <div class="chart bg-primary-2">
+            <p style="color: #fff" class="centered-text">Memoria total<br>{{ stats.mem }} mb</p>
+        </div>
+    </div>
+    <h2 class="centered-text">Archivos recientes</h2>
+    <table class="tbl">
+        <thead>
+            <tr>
+                <th class="tbl-head">Nombre</th>
+                <th class="tbl-head">Fecha de subida</th>
+                <th class="tbl-head">Carpeta</th>
+            </tr>
+        </thead>
+        </tbody>
+            {% for file in recent %}
+                <tr>
+                    <td class="tbl-cell">{{ file.name }}</td>
+                    <td class="tbl-cell">{{ file.date }}</td>
+                    <td class="tbl-cell">{{ file.dir.name }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock content %}

@@ -1,0 +1,45 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}">
+        <script src="{% static 'js/userInfo.js' %}" defer></script>
+        <script src="{% static 'js/displayWindows.js' %}" defer></script>
+        <title>PyCloud - {{ title }}</title>
+    </head>
+    <body id="main-cont" class="bg-clear-1">
+        <header id="head-zone" class="row-layout spaced-content">
+            <img alt="PyCloud" height="50" src="{% static 'img/pycloud-logo.png' %}">
+            <h2>{{ caption }}</h2>
+            <button id="account">A</button>
+        </header>
+        <aside id="side-zone" class="bg-primary-2 column-layout">
+            {% block actions %}
+                Sin acciones
+            {% endblock actions %}
+            <div id="movile-button" class="chart bg-primary-2">
+                push
+            </div>
+        </aside>
+        <main id="content-zone">
+            {% block content %}
+            {% endblock content %}
+        </main>
+        <div id="window-cont" class="full-box bg-primary-1">
+            {% block windows %}
+                <div id="account-box" class="centered-chart bg-clear-1 column-layout">
+                    <h2 class="centered-text">Datos de cuenta</h2>
+                    <p>
+                        <b>ID:</b> {{ user.id }}<br>
+                        <b>Nombre:</b> {{ user.name }}<br>
+                        <b>Correo:</b> {{ user.mail }}
+                    </p>
+                    <a class="link centered-text" href="/">cerrar sesion</a>
+                    <button id="account-close" class="btn btn-primary">cerrar</button>
+                </div>
+            {% endblock windows %}
+        </div>
+    </body>
+</html>

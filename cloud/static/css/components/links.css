@@ -4,6 +4,18 @@
     text-decoration: none;
 }
 
-.link:visited, link:hover, link:active {
+.link:visited, .link:hover, .link:active {
     color: var(--primary-3);
+}
+
+.tab-link {
+    background-color: var(--primary-1);
+    display: inline-block;
+    color: var(--clear-1);
+    text-decoration: none;
+    padding: 5px;
+}
+
+.tab-link:visited, .tab-link:hover, .tab-link:active {
+    color: var(--clear-2);
 }

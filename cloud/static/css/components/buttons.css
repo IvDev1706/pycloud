@@ -43,3 +43,14 @@
     color: var(--clear-3);
     background-color: var(--danger-2);
 }
+
+.btn-agree {
+    color: var(--clear-1);
+    background-color: var(--agree-1);
+    border: 1px solid var(--agree-1);
+}
+
+.btn-agree:active {
+    color: var(--clear-3);
+    background-color: var(--agree-2);
+}

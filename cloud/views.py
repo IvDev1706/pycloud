@@ -3,8 +3,8 @@ from django.views import View
 from django.http import HttpRequest, FileResponse
 from .forms import *
 from .models import *
+from .utils import *
 from datetime import date
-from PyCloud.settings import CLOUD_DIR
 import os, shutil
 
 # Create your views here.
@@ -12,13 +12,6 @@ class LoginView(View):
     #atributos de la vista
     template = "loginTemplate.html"
     context = {'title':"login",'form':None}
-    ertpl = "error.html"
-    errctx = {
-        'title':"error",
-        'code':404,
-        'summary':"Acceso invalido",
-        'description':"El nombre de usuario o contraseña son incorrectos o no existen"
-    }
     #cuando se realizan peticiones get
     def get(self, request:HttpRequest):
         #logica de vista
@@ -56,19 +49,12 @@ class LoginView(View):
                 #actualizacion del contexto
                 self.context['form'] = LoginForm()
                 #retornamos el mensaje de error
-                return render(request,self.ertpl,self.errctx,status=self.errctx['code'])
+                return render(request,ERRORTEMPLATE,INVALIDLOGIN,status=INVALIDLOGIN['code'])
 
 class SignUpView(View):
     #atributos de la vista
     template = 'loginTemplate.html'
     context = {'title':"signup",'form':None}
-    ertpl = "error.html"
-    errctx = {
-        'title':"error",
-        'code':500,
-        'summary':"fallo interno del servidor",
-        'description':"Ocurrio un fallo al crear la cuenta de usuario y/o mapear la unidad en disco"
-    }
     #cuando se realizan peticiones get
     def get(self, request:HttpRequest):
         #logica de vista
@@ -109,12 +95,12 @@ class SignUpView(View):
             #actualizacion del contexto
             self.context['form'] = SignUpForm()
             #retornamos el mensaje de error
-            return render(request,self.ertpl,self.errctx,status=self.errctx['code'])
+            return render(request,ERRORTEMPLATE,INTERNALERROR,status=INTERNALERROR['code'])
 
 class UnitView(View):
     #atributos de la vista
     template = "unit.html"
-    context = {'title':"myunit",'user':{},'stats':{}, 'recent': None}
+    context = {'title':"myunit",'caption':"Mi unidad",'user':{},'stats':{}, 'recent': None}
     #cuando se realiza peticion get
     def get(self,request:HttpRequest):
         #obtener el id
@@ -161,20 +147,7 @@ class UnitView(View):
 class DirectoryView(View):
     #atributos de la vista
     template = "dir.html"
-    context = {'title':'dirctory','user':{}}
-    ertpl = "error.html"
-    errctx1 = {
-        'title':"error",
-        'code':404,
-        'summary':"directorio no entontrado",
-        'description':"El nombre del directorio es incorrecto o no existe"
-    }
-    errctx2 = {
-        'title':"error",
-        'code':500,
-        'summary':"fallo interno del servidor",
-        'description':"Ocurrio un fallo inesperado durante la operacion realizada"
-    }
+    context = {'title':"dirctory",'user':{}}
     #cuando se realiza peticiones get
     def get(self,request:HttpRequest,dir:str):
         #obtener el id
@@ -199,7 +172,7 @@ class DirectoryView(View):
         try:
             #obtener directorio si existe
             dr = Directory.objects.get(name=dir,user=User.objects.get(id=id).pk)
-            self.context['dirname'] = dr.name
+            self.context['caption'] = dr.name
             
             #obtener la jerarquia
             self.context['crumbs'] = [dir for dir in dr.hierarchy.split("/") if dir != ""]
@@ -213,7 +186,7 @@ class DirectoryView(View):
             #retornar vista
             return render(request,self.template,self.context)
         except Directory.DoesNotExist:
-            return render(request,self.ertpl,self.errctx1)
+            return render(request,ERRORTEMPLATE,NOTFOUNDDIR)
         
     #cuando se realizan peticiones post
     def post(self,request:HttpRequest,dir:str):        
@@ -241,10 +214,9 @@ class DirectoryView(View):
             #retornar vista
             return render(request,self.template,self.context)
         except Directory.DoesNotExist:
-            return render(request,self.ertpl,self.errctx1,status=self.errctx1['code'])
-        except Exception as e:
-            print(e)
-            return render(request,self.ertpl,self.errctx2,status=self.errctx2['code'])
+            return render(request,ERRORTEMPLATE,NOTFOUNDDIR,status=NOTFOUNDDIR['code'])
+        except Exception:
+            return render(request,ERRORTEMPLATE,INTERNALERROR,status=INTERNALERROR['code'])
     
     def handle_dir(self,request:HttpRequest,dr:Directory):
         #obtener nuevo directorio
@@ -311,20 +283,6 @@ class DirectoryView(View):
         return True
         
 class FileView(View):
-    #atributos de clase
-    ertpl = "error.html"
-    errctx1 = {
-        'title':"error",
-        'code':404,
-        'summary':"Archivo no encontrado",
-        'description':"El nombre de archivo es incorrecto o no existe"
-    }
-    errctx2 = {
-        'title':"error",
-        'code':500,
-        'summary':"fallo interno del servidor",
-        'description':"Ocurrio un fallo inesperado durante la operacion realizada"
-    }
     #cuando se realizen peticiones get
     def get(self, request:HttpRequest, file:str):
         #obtener el id
@@ -348,7 +306,7 @@ class FileView(View):
             #retornar el archivo
             return FileResponse(handler,as_attachment=True,filename=os.path.basename(path))
         except File.DoesNotExist:
-            return render(request,self.ertpl,self.errctx1,status=self.errctx1['code'])
+            return render(request,ERRORTEMPLATE,NOTFOUNDFILE,status=NOTFOUNDFILE['code'])
         
     def post(self, request:HttpRequest, file:str):
         #validar existenia del archivo
@@ -368,6 +326,6 @@ class FileView(View):
                 
             return redirect(f"/dir/{fl.dir.name}")
         except File.DoesNotExist:
-            return render(request,self.ertpl,self.errctx1,status=self.errctx1['code'])
-        except Exception as e:
-            return render(request,self.ertpl,self.errctx2,status=self.errctx2['code'])
+            return render(request,ERRORTEMPLATE,NOTFOUNDFILE,status=NOTFOUNDFILE['code'])
+        except Exception:
+            return render(request,ERRORTEMPLATE,INTERNALERROR,status=INTERNALERROR['code'])
