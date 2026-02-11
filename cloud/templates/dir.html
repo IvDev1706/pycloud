@@ -48,11 +48,12 @@
                     <td class="file-tbl-cell">{{ user.name }}</td>
                     <td class="file-tbl-cell">{{ file.date }}</td>
                     <td class="file-tbl-cell">{{ file.size }}</td>
-                    <td class="file-tbl-cell">
-                        <form method="post" action="/file/{{ file.name }}" class="column-layout">
+                    <td class="file-tbl-cell row-layout">
+                        <a href="/update/file/{{ file.name }}" class="tab-link">actualizar</a>
+                        <button form="form_{{file.id}}" type="submit" class="btn btn-danger">eliminar</button>
+                        <form id="form_{{file.id}}" method="post" action="/file/{{ file.name }}" class="column-layout">
                             {% csrf_token %}
                             {{ rmfileform.type }}
-                            <button type="submit" class="btn btn-danger">elim.</button>
                         </form>
                     </td>
                 </tr>

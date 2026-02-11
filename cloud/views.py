@@ -323,9 +323,66 @@ class FileView(View):
                 fl.delete()
                 #eliminar fisicamente el archivo
                 os.remove(CLOUD_DIR+fl.dir.hierarchy+file)
-                
+            elif type == "up-file":
+                self.handle_update(request,fl)
             return redirect(f"/dir/{fl.dir.name}")
         except File.DoesNotExist:
             return render(request,ERRORTEMPLATE,NOTFOUNDFILE,status=NOTFOUNDFILE['code'])
-        except Exception:
+        except Exception as e:
+            print(e)
             return render(request,ERRORTEMPLATE,INTERNALERROR,status=INTERNALERROR['code'])
+        
+    def handle_update(self,request:HttpRequest,fl:File):
+        #obtener informacion del formulario
+        upform = UpdateFileForm(request.POST,user_id=request.session.get("user_id"))
+        
+        #validar formulario
+        if not upform.is_valid():
+            return
+        
+        #guardar previos
+        old_dir = fl.dir
+        old_name = fl.name
+        
+        #actualizar datos
+        fl.name = upform.cleaned_data['name']
+        fl.dir = upform.cleaned_data['dir']
+        fl.save()
+        
+        #mover 7y renombrar el archivo
+        os.rename(CLOUD_DIR+old_dir.hierarchy+old_name,CLOUD_DIR+old_dir.hierarchy+fl.name)
+        shutil.move(CLOUD_DIR+old_dir.hierarchy+fl.name,CLOUD_DIR+fl.dir.hierarchy+fl.name)
+
+class UpdateFileView(View):
+    #atributos de clase
+    template = "update.html"
+    context = {'user':{}}
+    #metodo get para vista
+    def get(self, request:HttpRequest, file:str):
+        #obtener el id
+        id = request.session.get("user_id")
+        
+        #verificar el login
+        if not id:
+            return redirect("/")
+        
+        #manejo de error
+        try:
+            #obtener archivo
+            fl = File.objects.get(name=file)
+            
+            #añadir nombre de archivo
+            self.context['dofname'] = file
+            self.context['type'] = "file"
+            
+            #formulario de actualizacion
+            self.context['form'] = UpdateFileForm(user_id=id,initial={'name':fl.name,'dir':fl.dir})
+            
+            #guardar info de usuario
+            self.context['user']['id'] = id
+            self.context['user']['name'] = request.session.get("user_name")
+            self.context['user']['mail'] = request.session.get("user_mail")
+            
+            return render(request,self.template,self.context)
+        except File.DoesNotExist:
+            return render(request,ERRORTEMPLATE,NOTFOUNDFILE,status=NOTFOUNDFILE['code'])

@@ -13,6 +13,9 @@ class Directory(models.Model):
     hierarchy = models.TextField()
     level = models.IntegerField()
     user = models.ForeignKey(User,on_delete=models.CASCADE)
+    
+    def __str__(self):
+        return self.name
 
 class File(models.Model):
     #campos del directorio
@@ -20,3 +23,6 @@ class File(models.Model):
     size = models.IntegerField()
     date = models.DateField()
     dir = models.ForeignKey(Directory,on_delete=models.CASCADE)
+    
+    def __str__(self):
+        return self.name
