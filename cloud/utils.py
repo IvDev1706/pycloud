@@ -16,7 +16,7 @@ INTERNALERROR = {
     'title':"error",
     'code':500,
     'summary':"fallo interno del servidor",
-    'description':"Ocurrio un fallo al crear la cuenta de usuario y/o mapear la unidad en disco"
+    'description':"Ocurrio un fallo inseperado durante la transaccion ejecutada"
 }
 
 NOTFOUNDDIR = {

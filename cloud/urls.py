@@ -8,5 +8,6 @@ urlpatterns = [
     path('myunit',UnitView.as_view()),
     path('dir/<str:dir>',DirectoryView.as_view()),
     path('file/<str:file>',FileView.as_view()),
-    path('update/file/<str:file>',UpdateFileView.as_view())
+    path('update/file/<str:file>',UpdateFileView.as_view()),
+    path('update/dir/<str:dir>',UpdateDirectoryView.as_view())
 ]

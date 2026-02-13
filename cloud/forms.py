@@ -50,3 +50,8 @@ class UpdateFileForm(forms.Form):
         
         #guardar el queryset
         self.fields['dir'].queryset = Directory.objects.filter(user=id)
+
+class UpdateDirectoryForm(forms.Form):
+    #campos del formulario
+    name = forms.CharField(label="Nombre del directorio:",strip=True,max_length=20,required=True,widget=forms.TextInput(attrs={'class':"inpt"}))
+    type = forms.CharField(label="",widget=forms.HiddenInput(),initial="up-dir")

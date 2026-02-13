@@ -211,6 +211,13 @@ class DirectoryView(View):
                 else:
                     #se intento eliminar la raiz
                     raise Exception()
+            elif type == "up-dir":
+                if self.handle_update(request,dr):
+                    #redirigir a carpeta actualizada
+                    return redirect(f"/dir/{dr.name}")
+                else:
+                    #se intento modificar la raiz
+                    raise Exception()
             #retornar vista
             return render(request,self.template,self.context)
         except Directory.DoesNotExist:
@@ -281,6 +288,37 @@ class DirectoryView(View):
         
         #redirigir
         return True
+    
+    def handle_update(self,request:HttpRequest,dr:Directory):
+        #obtener datos del formulario
+        updirform = UpdateDirectoryForm(request.POST)
+        
+        #verificar si es valido
+        if not updirform.is_valid() or dr.name.find("user") != -1:
+            return False
+        
+        #obtener el nombre
+        old_name = dr.name
+        old_hierarchy = dr.hierarchy
+        
+        #si no cambio nada
+        if old_name == updirform.cleaned_data['name']:
+            return True
+        
+        #actualizar en bd (nombre y jerarquia)
+        dr.name = updirform.cleaned_data['name']
+        dr.hierarchy = dr.hierarchy.replace(old_name,dr.name)
+        #guardar
+        dr.save()
+        #actualizar jerarquias
+        dirs = [dir for dir in Directory.objects.filter(hierarchy__icontains=old_name) if dir.pk != dr.pk]
+        for dir in dirs:
+            dir.hierarchy = dir.hierarchy.replace(old_name,dr.name)
+            dir.save()
+        #renombrar fisicamente
+        os.rename(CLOUD_DIR+old_hierarchy,CLOUD_DIR+dr.hierarchy)
+        
+        return True
         
 class FileView(View):
     #cuando se realizen peticiones get
@@ -329,7 +367,6 @@ class FileView(View):
         except File.DoesNotExist:
             return render(request,ERRORTEMPLATE,NOTFOUNDFILE,status=NOTFOUNDFILE['code'])
         except Exception as e:
-            print(e)
             return render(request,ERRORTEMPLATE,INTERNALERROR,status=INTERNALERROR['code'])
         
     def handle_update(self,request:HttpRequest,fl:File):
@@ -344,14 +381,27 @@ class FileView(View):
         old_dir = fl.dir
         old_name = fl.name
         
-        #actualizar datos
-        fl.name = upform.cleaned_data['name']
-        fl.dir = upform.cleaned_data['dir']
-        fl.save()
+        #si no cambio nada
+        if old_name == upform.cleaned_data['name'] and old_dir.pk == upform.cleaned_data['dir'].pk:
+            return
         
-        #mover 7y renombrar el archivo
-        os.rename(CLOUD_DIR+old_dir.hierarchy+old_name,CLOUD_DIR+old_dir.hierarchy+fl.name)
-        shutil.move(CLOUD_DIR+old_dir.hierarchy+fl.name,CLOUD_DIR+fl.dir.hierarchy+fl.name)
+        #actualizar nombre
+        if old_name != upform.cleaned_data['name']:
+            #primero en la bd
+            fl.name = upform.cleaned_data['name']
+            #guardar
+            fl.save()
+            #renombrar fisicamente
+            os.rename(CLOUD_DIR+old_dir.hierarchy+old_name,CLOUD_DIR+old_dir.hierarchy+fl.name)
+        
+        #actualizar el directorio
+        if old_dir.pk != upform.cleaned_data['dir'].pk:
+            #primero en la bd
+            fl.dir = upform.cleaned_data['dir']
+            #guardar
+            fl.save()
+            #mover fisicamente
+            shutil.move(CLOUD_DIR+old_dir.hierarchy+fl.name,CLOUD_DIR+fl.dir.hierarchy+fl.name)
 
 class UpdateFileView(View):
     #atributos de clase
@@ -386,3 +436,47 @@ class UpdateFileView(View):
             return render(request,self.template,self.context)
         except File.DoesNotExist:
             return render(request,ERRORTEMPLATE,NOTFOUNDFILE,status=NOTFOUNDFILE['code'])
+        
+    #cuando se realiza peticion post
+    def post(self,request:HttpRequest):
+        #retornar la plantilla
+        return redirect("/")
+
+class UpdateDirectoryView(View):
+    #atributos de clase
+    template = "update.html"
+    context = {'user':{}}
+    #metodo get para vista
+    def get(self, request:HttpRequest, dir:str):
+        #obtener el id
+        id = request.session.get("user_id")
+        
+        #verificar el login
+        if not id:
+            return redirect("/")
+        
+        #manejo de error
+        try:
+            #obtener archivo
+            dr = Directory.objects.get(name=dir)
+            
+            #añadir nombre de archivo
+            self.context['dofname'] = dir
+            self.context['type'] = "dir"
+            
+            #formulario de actualizacion
+            self.context['form'] = UpdateDirectoryForm(initial={'name':dr.name})
+            
+            #guardar info de usuario
+            self.context['user']['id'] = id
+            self.context['user']['name'] = request.session.get("user_name")
+            self.context['user']['mail'] = request.session.get("user_mail")
+            
+            return render(request,self.template,self.context)
+        except File.DoesNotExist:
+            return render(request,ERRORTEMPLATE,NOTFOUNDDIR,status=NOTFOUNDDIR['code'])
+        
+    #cuando se realiza peticion post
+    def post(self,request:HttpRequest):
+        #retornar la plantilla
+        return redirect("/")

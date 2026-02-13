@@ -4,6 +4,7 @@
     <button id="new-dir" class="btn btn-primary">crear carpeta</button>
     <button id="upload-file" class="btn btn-primary">subir archivo</button>
     <button id="rm-dir" class="btn btn-primary">eliminar carpeta</button>
+    <a href="/update/dir/{{ caption }}" class="tab-link centered-text">modificar carpeta</a>
 {% endblock actions %}
 
 {% block content %}
@@ -32,10 +33,11 @@
                     <td class="file-tbl-cell">-</td>
                     <td class="file-tbl-cell">-</td>
                     <td class="file-tbl-cell">
-                        <form method="post" action="/dir/{{ dir.name }}" class="column-layout">
+                        <a href="/update/dir/{{ dir.name }}" class="tab-link">modificar</a>
+                        <button form="form_dir_{{ dir.name }}" type="submit" class="btn btn-danger">eliminar</button>
+                        <form id="form_dir_{{ dir.name }}" method="post" action="/dir/{{ dir.name }}" class="column-layout">
                             {% csrf_token %}
                             {{ rmdirform.type }}
-                            <button type="submit" class="btn btn-danger">elim.</button>
                         </form>
                     </td>
                 </tr>
@@ -49,9 +51,9 @@
                     <td class="file-tbl-cell">{{ file.date }}</td>
                     <td class="file-tbl-cell">{{ file.size }}</td>
                     <td class="file-tbl-cell row-layout">
-                        <a href="/update/file/{{ file.name }}" class="tab-link">actualizar</a>
-                        <button form="form_{{file.id}}" type="submit" class="btn btn-danger">eliminar</button>
-                        <form id="form_{{file.id}}" method="post" action="/file/{{ file.name }}" class="column-layout">
+                        <a href="/update/file/{{ file.name }}" class="tab-link">modificar</a>
+                        <button form="form_file_{{file.id}}" type="submit" class="btn btn-danger">eliminar</button>
+                        <form id="form_file_{{file.id}}" method="post" action="/file/{{ file.name }}" class="column-layout">
                             {% csrf_token %}
                             {{ rmfileform.type }}
                         </form>
