@@ -26,6 +26,11 @@ SECRET_KEY = 'django-insecure-#12p1qt14i2h=mto6qsb#u&59ldx7f#_t2!j^d=-tq2xx&!jc(
 DEBUG = False
 
 ALLOWED_HOSTS = ["*"]
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8085",
+    "http://127.0.0.1:8085",
+    "http://pycloud.com:8085"
+]
 
 
 # Application definition
@@ -75,10 +80,8 @@ WSGI_APPLICATION = 'PyCloud.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'USER': 'pycloud',
-        'NAME': 'pycloud',
-        'PASSWORD': 'pycloud123'
+        'ENGINE': 'django.db.backends.sqlite3',
+        "NAME": 'pycloud.db'
     }
 }
 
