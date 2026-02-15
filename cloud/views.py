@@ -338,11 +338,8 @@ class FileView(View):
             #obtener la ruta
             path = Directory.objects.get(name=fl.dir.name).hierarchy + fl.name
             
-            #abrir el archivo fisicamente
-            handler = open(CLOUD_DIR+path,"rb")
-            
             #retornar el archivo
-            return FileResponse(handler,as_attachment=True,filename=os.path.basename(path))
+            return redirect("/media/"+path)
         except File.DoesNotExist:
             return render(request,ERRORTEMPLATE,NOTFOUNDFILE,status=NOTFOUNDFILE['code'])
         
