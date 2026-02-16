@@ -1,5 +1,5 @@
 #directorio raiz
-CLOUD_DIR = '/srv/cloud'
+CLOUD_DIR = '/srv/cloud/'
 
 #plantillas 
 ERRORTEMPLATE = "error.html"

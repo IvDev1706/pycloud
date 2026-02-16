@@ -28,8 +28,7 @@ DEBUG = False
 ALLOWED_HOSTS = ["*"]
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8085",
-    "http://127.0.0.1:8085",
-    "http://pycloud.com:8085"
+    "http://127.0.0.1:8085"
 ]
 
 
